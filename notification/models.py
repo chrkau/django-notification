@@ -9,7 +9,7 @@ from django.db import models
 from django.db.models.query import QuerySet
 from django.conf import settings
 from django.core.mail import send_mail
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import NoReverseMatch, reverse
 from django.template import Context
 from django.template.loader import render_to_string
 
@@ -265,11 +265,17 @@ def send_now(users, label, extra_context=None, on_site=True, sender=None):
 
     protocol = getattr(settings, "DEFAULT_HTTP_PROTOCOL", "http")
     current_site = Site.objects.get_current()
+    
+    try:
+        notices_url_name = settings.NOTIFICATION_NOTICES_URL_NAME
+    except AttributeError:
+        notices_url_name = 'notification_notices'
 
+    url_path = reverse(notices_url_name)
     notices_url = u"%s://%s%s" % (
         protocol,
         unicode(current_site),
-        reverse("notification_notices"),
+        url_path,
     )
 
     current_language = get_language()
